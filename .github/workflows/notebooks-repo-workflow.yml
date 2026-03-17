@@ -16,9 +16,9 @@ jobs:
       - name: Collect changed notebooks
         id: changed
         run: |
-          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
-          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
-          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
+          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- '*.ipynb' | jq -Rc . | jq -sc .)
+          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- '*.ipynb' | jq -Rc . | jq -sc .)
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- '*.ipynb' | jq -Rc . | jq -sc .)
           echo "added=$ADDED" >> $GITHUB_OUTPUT
           echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
           echo "deleted=$DELETED" >> $GITHUB_OUTPUT
