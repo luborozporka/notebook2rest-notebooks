@@ -1,0 +1,33 @@
+name: Notify Notebook2REST on notebook change
+
+on:
+  push:
+    branches: [main]
+    paths: ["**/*.ipynb"]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Collect changed notebooks
+        id: changed
+        run: |
+          FILES=$(git diff --name-only HEAD~1 HEAD -- '*.ipynb' | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Trigger Notebook2REST sync
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.NOTEBOOK2REST_PAT }}
+          repository: luborozporka/Notebook2REST
+          event-type: notebooks-changed
+          client-payload: |
+            {
+              "repo_url": "https://github.com/${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "changed_files": "${{ steps.changed.outputs.files }}"
+            }
