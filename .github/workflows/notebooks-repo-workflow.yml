@@ -16,8 +16,12 @@ jobs:
       - name: Collect changed notebooks
         id: changed
         run: |
-          FILES=$(git diff --name-only HEAD~1 HEAD -- '*.ipynb' | tr '\n' ' ')
-          echo "files=$FILES" >> $GITHUB_OUTPUT
+          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
+          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- '*.ipynb' | jq -R . | jq -s .)
+          echo "added=$ADDED" >> $GITHUB_OUTPUT
+          echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
+          echo "deleted=$DELETED" >> $GITHUB_OUTPUT
 
       - name: Trigger Notebook2REST sync
         uses: peter-evans/repository-dispatch@v3
@@ -28,6 +32,9 @@ jobs:
           client-payload: |
             {
               "repo_url": "https://github.com/${{ github.repository }}",
-              "branch": "${{ github.ref_name }}",
-              "changed_files": "${{ steps.changed.outputs.files }}"
+              "commit_sha": "${{ github.sha }}",
+              "ref": "refs/heads/${{ github.ref_name }}",
+              "added": ${{ steps.changed.outputs.added }},
+              "modified": ${{ steps.changed.outputs.modified }},
+              "deleted": ${{ steps.changed.outputs.deleted }}
             }
